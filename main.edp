@@ -1,11 +1,11 @@
 load "iovtk" 
 int plotstep = 1;
 
-real hmin = 0.0005, hmax = 0.15, dtmin = 0.0005, dtmax = 0.05, dnmax = 0.05;
+real hmin = 0.0005, hmax = 0.1, dtmin = 0.0005, dtmax = 0.05, dnmax = 0.05;
 
 real PulseDuration = 25e-15;                // [s]
-real FieldIntensity = 0.76e13;               //               // [W / cm^2]
-real VoidRadius = 50;                       // [nm]
+real FieldIntensity = 2.5e13;               //               // [W / cm^2]
+real VoidRadius = 1;                       // [nm]
 real DomainRadius = 500; // [nm]
 
 real CollisionFrequency = 0.25;              // [FiedFrequency]
@@ -44,20 +44,12 @@ real Tshift = 2.5 * Tp, Tend = 5 * Tshift;
 real dt = dtmax;
 
 // -----------
-real h = hmax;
+real h = hmin;
 include "mesh.idp";
-mesh ThF0 = ThF;
 
 fespace VhF(ThF, P2);
 VhF<complex> ksi, v, eps;
-
 VhF<real> realKsi, imagKsi, AbsE2F, AbsEF = 0;
-
-fespace VhE(ThE, P1);
-
-VhE<real> n0 = 0, n1 = 0, w;
-VhE<real> AbsE2 = 0; 
-VhE<real> dtEstimate;
 
 // ---------------------------------
 func real extFieldAmpl(real t)
@@ -72,7 +64,20 @@ func real EorF()
   else
     return 1.0;
 }
+
+ThF = adaptmesh(ThF, EorF(), nbvx = 1000000, hmin = hmin, hmax = 2*hmax, ratio = 1.2); //, ratio = 1.5);
+mesh ThE = trunc(ThF, (ThF(x, y).region != ThF(0.0, 0.0).region), label = 1);
+mesh ThF0 = ThF;
+plot(ThF,wait = true);
+
 //  ----
+fespace VhE(ThE, P1);
+
+VhE<real> n0 = 0, n1 = 0, w;
+VhE<real> AbsE2 = 0; 
+VhE<real> dtEstimate;
+
+// ---
 eps = 1. + EorF() * (epsD * (1. - n0 * (1. - 1.i * nu)) - 1.);
 
 problem Potential(ksi, v, solver = LU) =

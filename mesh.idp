@@ -23,9 +23,8 @@ border A4(t = 1, a) {
   y = t;
 }
 
-mesh ThF = buildmesh(O1(round(pi * a / h / 2.)) + A2(round(a / h)) +
-                     A3(round(a / h)) + A4(round((1. - a) / h)) +
-                     O(round(pi / h / 2.)) + A1(round((1 - a) / h)));
 
-mesh ThE = buildmesh(O1(round(pi * a / h / 2.)) + A1(round((1 - a) / h)) +
-                     A4(round((1. - a) / h)) + O(round(pi / h / 2.)));
+mesh ThF = buildmesh(O1(round(pi / 2. * 10)) + A2(round(10)) +
+                     A3(round(10)) + A4(round((1. - a) * 10)) +
+                     O(round(pi / 2. * 10)) + A1(round((1 - a) * 10)));
+
