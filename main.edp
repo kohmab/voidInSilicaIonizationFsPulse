@@ -1,12 +1,12 @@
 load "iovtk" 
 int plotstep = 1;
 
-real hmin = 0.05, hmax = 1.5, dtmin = 0.0005, dtmax = 0.05, dnmax = 0.05;
+real hmin = 0.0005, hmax = 0.15, dtmin = 0.0005, dtmax = 0.05, dnmax = 0.05;
 
 real PulseDuration = 25e-15;                // [s]
 real FieldIntensity = 0.76e13;               //               // [W / cm^2]
 real VoidRadius = 50;                       // [nm]
-real R = 500 / VoidRadius;
+real DomainRadius = 500; // [nm]
 
 real CollisionFrequency = 0.25;              // [FiedFrequency]
 real DiffusinCoofficient = 30;              // [cm^2 / s]
@@ -33,9 +33,11 @@ real alphaA =
 real alphaM = Sigma6 * FieldIntensity ^ 6 * RecombinationTime;
 
 real D = DiffusinCoofficient * RecombinationTime /
-             (VoidRadius*1e-7) ^ 2;
+             (DomainRadius*1e-7) ^ 2;
 real Tp = PulseDuration / RecombinationTime;
 real epsD = MediumPermittivity, nu = CollisionFrequency, nmax = AtomDensity;
+real a = VoidRadius / DomainRadius;
+
 
 real Tshift = 2.5 * Tp, Tend = 5 * Tshift;
 
