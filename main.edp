@@ -76,8 +76,8 @@ func real EorF()
 eps = 1. + EorF() * (epsD * (1. - n0 * (1. - 1.i * nu)) - 1.);
 
 problem Potential(ksi, v, solver = LU) =
-    int1d(ThF, O)( 2. * v * ksi * x / R * eps) +
-    int1d(ThF, O)( 3. * x * y * v / R * eps) +
+    int1d(ThF, O)( 2. * v * ksi * x  * eps) +
+    int1d(ThF, O)( 3. * x * y * v * eps) +
     int2d(ThF)( eps * (dx(ksi) * dx(v) + dy(ksi) * dy(v)) * x) +
     on(A1, ksi = 0) + on(A2, ksi = 0);
 
@@ -101,7 +101,7 @@ SavePathMain = SavePathMain +
                " nu=" +  CollisionFrequency +
                " D=" + DiffusinCoofficient + "cm2s-1";
                
-string SavePathAdd = "R=" + R +
+string SavePathAdd = "R=" + DomainRadius +
                      " hmin=" + hmin +
                      " hmax=" + hmax +
                      " dtmin=" + dtmin +
@@ -132,7 +132,7 @@ func real PlotAndSave(int fileIndex, real t)
      << "AlphaM = " << alphaM << endl;
     times << "No." << "\t" << "time" << "\t" << "Ext. Field" << "\t" << "max{N}" <<"\t" <<"n1UPbond"<< "\t" <<"n1DOWNbond"<< "\t" <<"n1CENTERbond"<<endl;
   }
-  times << fileIndex << "\t" << t << "\t" << extFieldAmpl(t) << "\t" << n0[].max<< "\t" << n1(0,R) << "\t" << n1(R,0) <<"\t" << n1(R/sqrt(2),R/sqrt(2)) <<endl;
+  times << fileIndex << "\t" << t << "\t" << extFieldAmpl(t) << "\t" << n0[].max<< "\t" << n1(0,1) << "\t" << n1(1,0) <<"\t" << n1(1/sqrt(2),1/sqrt(2)) <<endl;
   times.flush;
   return 0;
 }
@@ -179,7 +179,7 @@ for (real t = -Tshift; t < Tend; t += dt)
     PlotAndSave(fileIndex, t);
   }
   ploti++;
-  if (n1(R,0) > 1 || n1(0,R) > 1 || n1(R/sqrt(2),R/sqrt(2))> 1) {
+  if (n1(1,0) > 1 || n1(0,1) > 1 || n1(1/sqrt(2),1/sqrt(2))> 1) {
   
   exit(0);
 }
