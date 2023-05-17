@@ -1,0 +1,31 @@
+border O(t = 0, pi / 2.) {
+  x = cos(t);
+  y = sin(t);
+}
+border O1(t = pi / 2., 0) {
+  x = a * cos(t);
+  y = a * sin(t);
+}
+border A1(t = a, 1) {
+  x = t;
+  y = 0;
+}
+border A2(t = 0, a) {
+  x = t;
+  y = 0;
+}
+border A3(t = a, 0) {
+  x = 0;
+  y = t;
+}
+border A4(t = 1, a) {
+  x = 0;
+  y = t;
+}
+
+mesh ThF = buildmesh(O1(round(pi * a / h / 2.)) + A2(round(a / h)) +
+                     A3(round(a / h)) + A4(round((1. - a) / h)) +
+                     O(round(pi / h / 2.)) + A1(round((1 - a) / h)));
+
+mesh ThE = buildmesh(O1(round(pi * a / h / 2.)) + A1(round((1 - a) / h)) +
+                     A4(round((1. - a) / h)) + O(round(pi / h / 2.)));

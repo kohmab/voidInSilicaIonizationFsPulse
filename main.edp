@@ -1,0 +1,184 @@
+load "iovtk" 
+int plotstep = 1;
+
+real hmin = 0.05, hmax = 1.5, dtmin = 0.0005, dtmax = 0.05, dnmax = 0.05;
+
+real PulseDuration = 25e-15;                // [s]
+real FieldIntensity = 0.76e13;               //               // [W / cm^2]
+real VoidRadius = 50;                       // [nm]
+real R = 500 / VoidRadius;
+
+real CollisionFrequency = 0.25;              // [FiedFrequency]
+real DiffusinCoofficient = 30;              // [cm^2 / s]
+
+real MediumPermittivity = 2;
+real RecombinationTime = 150e-15;           // [s]
+real FiedFrequency = 2.35e15;               // [1 / s]
+real BandGap = 1.44198e-11;                 // [erg]
+real Sigma6 = 1e-69;                        // [W^-6 s^-1 cm^12]
+real AtomDensity = 5;                       // [CriticalDensity]
+
+// -------------------------------------------------
+real c = 3e10; // [cm / s]
+real e = 4.8e-10;  // [CGSE]
+real m = 0.91e-27; // [g]
+
+real FieldAmplitude =
+    sqrt(8 * pi / c / sqrt(MediumPermittivity) * FieldIntensity * 1e7);
+
+real alphaA =
+    CollisionFrequency * FieldAmplitude ^ 2 * e ^ 2 * RecombinationTime /               // Avalance ionization rate coofitient
+                                                      3 / m / FiedFrequency / BandGap / // ( Avalance ionization frequency ~
+                                                      (1 + CollisionFrequency ^ 2);     // alphaA * abs(E/FieldAmplitude)^2 )
+real alphaM = Sigma6 * FieldIntensity ^ 6 * RecombinationTime;
+
+real D = DiffusinCoofficient * RecombinationTime /
+             (VoidRadius*1e-7) ^ 2;
+real Tp = PulseDuration / RecombinationTime;
+real epsD = MediumPermittivity, nu = CollisionFrequency, nmax = AtomDensity;
+
+real Tshift = 2.5 * Tp, Tend = 5 * Tshift;
+
+real dt = dtmax;
+
+// -----------
+real h = hmax;
+include "mesh.idp";
+mesh ThF0 = ThF;
+
+fespace VhF(ThF, P2);
+VhF<complex> ksi, v, eps;
+
+VhF<real> realKsi, imagKsi, AbsE2F, AbsEF = 0;
+
+fespace VhE(ThE, P1);
+
+VhE<real> n0 = 0, n1 = 0, w;
+VhE<real> AbsE2 = 0; 
+VhE<real> dtEstimate;
+
+// ---------------------------------
+func real extFieldAmpl(real t)
+{
+    return exp(-((t) / Tp) ^ 2 / 2);
+}
+
+func real EorF()
+{
+  if (ThF(x, y).region == ThF(0.0, 0.0).region)
+    return 0.0;
+  else
+    return 1.0;
+}
+//  ----
+eps = 1. + EorF() * (epsD * (1. - n0 * (1. - 1.i * nu)) - 1.);
+
+problem Potential(ksi, v, solver = LU) =
+    int1d(ThF, O)( 2. * v * ksi * x / R * eps) +
+    int1d(ThF, O)( 3. * x * y * v / R * eps) +
+    int2d(ThF)( eps * (dx(ksi) * dx(v) + dy(ksi) * dy(v)) * x) +
+    on(A1, ksi = 0) + on(A2, ksi = 0);
+
+problem Density(n1, w, solver = LU) =
+    int2d(ThE)((1. / dt + 1 - alphaA * AbsE2 * (1 - n0 / nmax) + alphaM * AbsE2 ^ 6) * n1 * w * x) 
+  - int2d(ThE)((alphaM * AbsE2 ^ 6 * nmax + n0 / dt) * w * x) 
+  + int2d(ThE)(D * (dx(n1) * dx(w) + dy(n1) * dy(w)) * x);
+
+cout << "D = "  << D << endl 
+     << "AlphaA = " << alphaA << endl 
+     << "AlphaM = " << alphaM << endl;
+
+macro Pset fill = true, value = true, WindowIndex = // EOM
+// -----------------------
+string SavePathMain = "./";
+
+SavePathMain = SavePathMain + 
+               "Imax=" + FieldIntensity + "Wcm-2" + 
+               " Tp=" + PulseDuration*1e15 + "fs" +
+               " a=" + VoidRadius + "nm" +
+               " nu=" +  CollisionFrequency +
+               " D=" + DiffusinCoofficient + "cm2s-1";
+               
+string SavePathAdd = "R=" + R +
+                     " hmin=" + hmin +
+                     " hmax=" + hmax +
+                     " dtmin=" + dtmin +
+                     " dtmax=" + dtmax +
+                     " dnmax=" + dnmax +
+                     " Tshift=" + Tshift + 
+                     " Tend=" + Tend;
+string SavePath = SavePathMain + "/" + SavePathAdd + "/";
+
+system("mkdir \"" + SavePathMain + "\"");
+system("mkdir \"" + SavePath + "\"");
+
+string DataNameF = "realKsi imagKsi AbsE2",
+       DataNameE = "n0 AbsE2";
+int[int] OrderF = [ 1, 1, 1 ],
+         OrderE = [ 1, 1 ];
+
+func real PlotAndSave(int fileIndex, real t)
+{
+  savevtk(SavePath + "F" + fileIndex + ".vtu", ThF, realKsi, imagKsi, AbsEF,
+          dataname = DataNameF, order = OrderF);
+  savevtk(SavePath + "N" + fileIndex + ".vtu", ThE, n0, AbsE2,
+          dataname = DataNameE, order = OrderE);
+  ofstream times(SavePath + "Atimes.txt", append);
+  if (fileIndex == 1) {
+     times << "D = "  << D << endl 
+     << "AlphaA = " << alphaA << endl 
+     << "AlphaM = " << alphaM << endl;
+    times << "No." << "\t" << "time" << "\t" << "Ext. Field" << "\t" << "max{N}" <<"\t" <<"n1UPbond"<< "\t" <<"n1DOWNbond"<< "\t" <<"n1CENTERbond"<<endl;
+  }
+  times << fileIndex << "\t" << t << "\t" << extFieldAmpl(t) << "\t" << n0[].max<< "\t" << n1(0,R) << "\t" << n1(R,0) <<"\t" << n1(R/sqrt(2),R/sqrt(2)) <<endl;
+  times.flush;
+  return 0;
+}
+
+// ---------------------------------
+int fileIndex = 0, ploti = 0;
+
+for (real t = -Tshift; t < Tend; t += dt)
+{
+  eps = 1. + EorF() * (epsD * (1. - n1 * (1. - 1.i * nu)) - 1.);
+  Potential;
+  Density;
+  realKsi = real(ksi);
+  imagKsi = imag(ksi);
+  AbsE2F = abs(dx(ksi) * dx(ksi) + dy(ksi) * dy(ksi));
+  AbsEF = sqrt(AbsE2F);
+  AbsE2 = extFieldAmpl(t) ^ 2 * AbsE2F;
+  if (true)
+  {
+    cout << "adapt ThF"
+         << "\n";
+    ThF = adaptmesh(ThF, AbsE2F/AbsE2F[].max, nbvx = 1000000, hmin = hmin, hmax = 2*hmax, ratio = 1.2); //, ratio = 1.5);
+    ThE = trunc(ThF, (ThF(x, y).region != ThF(0.0, 0.0).region), label = 1);
+  }
+  if (t > 2 * Tshift)
+  {
+    mesh ThF = ThF0;
+    mesh ThE = trunc(ThF, (ThF(x, y).region != ThF(0.0, 0.0).region), label = 1);
+    dt = dtmax;
+  }
+
+  n0 = n1;
+
+  dtEstimate = dnmax / (alphaA * AbsE2 * n0 + alphaM * AbsE2 ^ 6 * nmax);
+
+  dt = min(dtmax, max(dtmin, dtEstimate[].min));
+
+  cout << "T = " << t << " (dt = " << dt << ")"
+       << "\tNmax = " << n1[].max << endl;
+
+  if (ploti % plotstep == 0)
+  {
+    fileIndex++;
+    PlotAndSave(fileIndex, t);
+  }
+  ploti++;
+  if (n1(R,0) > 1 || n1(0,R) > 1 || n1(R/sqrt(2),R/sqrt(2))> 1) {
+  
+  exit(0);
+}
+}
