@@ -83,8 +83,8 @@ macro Pset fill = true, value = true, WindowIndex = // EOM
 string SavePathMain = "./";
 
 SavePathMain = SavePathMain +                
-               " a=" + VoidRadius + "nm" +
-               "Imax=" + FieldIntensity + "Wcm-2" + 
+               "a=" + VoidRadius + "nm" +
+               " Imax=" + FieldIntensity + "Wcm-2" + 
                " Tp=" + PulseDuration*1e15 + "fs" +
                " nu=" +  CollisionFrequency +
                " D=" + DiffusinCoofficient + "cm2s-1";
