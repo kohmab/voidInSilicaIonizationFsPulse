@@ -22,7 +22,7 @@ real epsD = MediumPermittivity, nu = CollisionFrequency, nmax = AtomDensity;
 real a = VoidRadius / DomainRadius;
 
 
-real Tshift = 2.5 * Tp, Tend = 5 * Tshift;
+real Tshift = 2.5 * Tp, Tend = 3 * Tshift;
 
 real dt = dtmax;
 
@@ -82,10 +82,10 @@ macro Pset fill = true, value = true, WindowIndex = // EOM
 // -----------------------
 string SavePathMain = "./";
 
-SavePathMain = SavePathMain + 
+SavePathMain = SavePathMain +                
+               " a=" + VoidRadius + "nm" +
                "Imax=" + FieldIntensity + "Wcm-2" + 
                " Tp=" + PulseDuration*1e15 + "fs" +
-               " a=" + VoidRadius + "nm" +
                " nu=" +  CollisionFrequency +
                " D=" + DiffusinCoofficient + "cm2s-1";
                
