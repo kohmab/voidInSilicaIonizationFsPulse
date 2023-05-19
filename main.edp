@@ -48,11 +48,12 @@ func real EorF()
     return 1.0;
 }
 
-ThF = adaptmesh(ThF, EorF(), nbvx = 1000000, hmin = hmin, hmax = 2*hmax, ratio = 1.2); //, ratio = 1.5);
+ThF = adaptmesh(ThF, EorF(), nbvx = 1000000, hmin = hmin, hmax = hmax, ratio = 1.2); //, ratio = 1.5);
 mesh ThE = trunc(ThF, (ThF(x, y).region != ThF(0.0, 0.0).region), label = 1);
 mesh ThF0 = ThF;
 
 //  ----
+real meanN = 0;
 fespace VhE(ThE, P1);
 
 VhE<real> n0 = 0, n1 = 0, w;
@@ -132,11 +133,12 @@ for (real t = -Tshift; t < Tend; t += dt)
   eps = 1. + EorF() * (epsD * (1. - n1 * (1. - 1.i * nu)) - 1.);
   Potential;
   Density;
+  meanN = int1d(ThE,O)(n1) / (pi/2);
   realKsi = real(ksi);
   imagKsi = imag(ksi);
   AbsE2F = abs(dx(ksi) * dx(ksi) + dy(ksi) * dy(ksi));
   AbsEF = sqrt(AbsE2F);
-  AbsE2 = extFieldAmpl(t) ^ 2 * AbsE2F;
+  AbsE2 = extFieldAmpl(t) ^ 2 * AbsE2F * (1 - meanN);
   if (true)
   {
     cout << "adapt ThF"
