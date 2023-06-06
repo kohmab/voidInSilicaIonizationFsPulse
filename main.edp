@@ -87,7 +87,8 @@ SavePathMain = SavePathMain +
                " Imax=" + FieldIntensity + "Wcm-2" + 
                " Tp=" + PulseDuration*1e15 + "fs" +
                " nu=" +  CollisionFrequency +
-               " D=" + DiffusinCoofficient + "cm2s-1";
+               " D=" + DiffusinCoofficient + "cm2s-1" +
+               " Nmax=" + Nmax;
                
 string SavePathAdd = "R=" + DomainRadius +
                      " hmin=" + hmin +
@@ -138,7 +139,7 @@ for (real t = -Tshift; t < Tend; t += dt)
   imagKsi = imag(ksi);
   AbsE2F = abs(dx(ksi) * dx(ksi) + dy(ksi) * dy(ksi));
   AbsEF = sqrt(AbsE2F);
-  AbsE2 = extFieldAmpl(t) ^ 2 * AbsE2F * (1 - meanN);
+  AbsE2 = extFieldAmpl(t) ^ 2 * AbsE2F * (1 - meanN/Nmax);
   if (true)
   {
     cout << "adapt ThF"

@@ -1,10 +1,10 @@
 int plotstep = 1;
 
-real hmin = 0.0005, hmax = 0.1, dtmin = 0.0005, dtmax = 0.01, dnmax = 0.05;
+real hmin = 0.001, hmax = 0.05, dtmin = 0.001, dtmax = 0.01, dnmax = 0.05;
 
-real PulseDuration = 30e-15;                // [s]
-real FieldIntensity = 2.5e13;               //               // [W / cm^2]
-real VoidRadius = 1;                       // [nm]
+real PulseDuration = 25e-15;                // [s]
+real FieldIntensity = 4.5e13;               //               // [W / cm^2]
+real VoidRadius = 5;                       // [nm]
 real DomainRadius = 500; // [nm]
 
 real CollisionFrequency = 0.25;              // [FiedFrequency]
@@ -16,3 +16,4 @@ real FiedFrequency = 2.35e15;               // [1 / s]
 real BandGap = 1.44198e-11;                 // [erg]
 real Sigma6 = 1e-69;                        // [W^-6 s^-1 cm^12]
 real AtomDensity = 5;                       // [CriticalDensity]
+real Nmax = 0.3 // maximum density in surrounding discharge [CriticalDensity]
